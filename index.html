@@ -70,10 +70,10 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0x404060);
+        const ambientLight = new THREE.AmbientLight(0x404050, 1);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xfff5e6, 1);
+        const dirLight = new THREE.DirectionalLight(0xfff5e6, 0.5);
         dirLight.position.set(2, 5, 3);
         dirLight.castShadow = true;
         dirLight.receiveShadow = true;
@@ -88,64 +88,67 @@
         dirLight.shadow.camera.far = 15;
         scene.add(dirLight);
 
-        const pointLight1 = new THREE.PointLight(0xffaa88, 0.8, 10);
+        const pointLight1 = new THREE.PointLight(0x404050, 0.8, 10);
         pointLight1.position.set(-2, 3, 2);
         scene.add(pointLight1);
 
-        const pointLight2 = new THREE.PointLight(0x88aaff, 0.8, 10);
+        const pointLight2 = new THREE.PointLight(0x404050, 0.8, 10);
         pointLight2.position.set(4, 3, -2);
         scene.add(pointLight2);
 
-        const backLight = new THREE.PointLight(0x446688, 0.5);
+        const backLight = new THREE.PointLight(0x404050, 0.5);
         backLight.position.set(0, 2, -5);
         scene.add(backLight);
 
         const floorGeometry = new THREE.PlaneGeometry(15, 15);
-        const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.3, metalness: 0.1, emissive: 0x000000 });
+        const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3, metalness: 0.1, emissive: 0x000000 });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = 0;
         floor.receiveShadow = true;
         scene.add(floor);
+
+        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.7, emissive: 0x000000 });
+
         const backWallGeo = new THREE.BoxGeometry(15, 6, 0.3);
-        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.7, emissive: 0x000000 });
         const backWall = new THREE.Mesh(backWallGeo, wallMaterial);
         backWall.position.set(0, 3, -7.5);
         backWall.receiveShadow = true;
-        backWall.castShadow = true;
+        backWall.castShadow = false;
         scene.add(backWall);
 
         const leftWallGeo = new THREE.BoxGeometry(0.3, 6, 15);
         const leftWall = new THREE.Mesh(leftWallGeo, wallMaterial);
         leftWall.position.set(-7.5, 3, 0);
         leftWall.receiveShadow = true;
-        leftWall.castShadow = true;
+        leftWall.castShadow = false;
         scene.add(leftWall);
 
         const rightWallGeo = new THREE.BoxGeometry(0.3, 6, 15);
         const rightWall = new THREE.Mesh(rightWallGeo, wallMaterial);
         rightWall.position.set(7.5, 3, 0);
         rightWall.receiveShadow = true;
-        rightWall.castShadow = true;
+        rightWall.castShadow = false;
         scene.add(rightWall);
 
         const frontWallGeo = new THREE.BoxGeometry(15, 6, 0.3);
         const frontWall = new THREE.Mesh(frontWallGeo, wallMaterial);
         frontWall.position.set(0, 3, 7.5);
         frontWall.receiveShadow = true;
-        frontWall.castShadow = true;
+        frontWall.castShadow = false;
         scene.add(frontWall);
 
         const ceilingGeo = new THREE.PlaneGeometry(15, 15);
-        const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0x333344, roughness: 0.6, emissive: 0x111122, side: THREE.DoubleSide });
+        const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.7, emissive: 0x000000, side: THREE.DoubleSide });
         const ceiling = new THREE.Mesh(ceilingGeo, ceilingMaterial);
         ceiling.rotation.x = Math.PI / 2;
         ceiling.position.y = 6;
         ceiling.receiveShadow = false;
         scene.add(ceiling);
 
-        function createPaintingWithTexture(width, height, texturePath, yOffset = 0) {
+        function createPaintingWithLight(width, height, texturePath, x, y, z, rotationY = 0) {
             const group = new THREE.Group();
+
             const canvasDepth = 0.1;
             const canvasGeo = new THREE.BoxGeometry(width, height, canvasDepth);
             const textureLoader = new THREE.TextureLoader();
@@ -167,46 +170,32 @@
             frame.position.z = -0.02;
             group.add(frame);
 
+            const spotLight = new THREE.SpotLight(0xfff0d0, 1.5, 10, Math.PI / 4, 0.5, 1);
+            spotLight.position.set(0, 3.5, 0.5);
+            spotLight.target.position.set(0, 0, 0);
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 512;
+            spotLight.shadow.mapSize.height = 512;
+            spotLight.shadow.camera.near = 0.5;
+            spotLight.shadow.camera.far = 5;
+            group.add(spotLight);
+            group.add(spotLight.target);
+
+            group.position.set(x, y, z);
+            group.rotation.y = rotationY;
+            scene.add(group);
+
             return group;
         }
 
-        const painting1 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/zG3Q58RN/b9f9ad03_e6f5_4ebc_9be3_598cc183db09.jpg');
-        painting1.position.set(-3.5, 2.5, -7.35);
-        scene.add(painting1);
-
-        const painting2 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/zX2dx622/Mark_Rothko_Den_Haag_Gemeentemuseum_Holland_Blog_Ausstellung_Grachten_und_Giebel_Tate_Modern2.jpg');
-        painting2.position.set(3.5, 2.5, -7.35);
-        scene.add(painting2);
-
-        const painting3 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/g2wgQsfb/422461_2x.webp');
-        painting3.position.set(-7.35, 2.5, -3.0);
-        painting3.rotation.y = Math.PI / 2;
-        scene.add(painting3);
-
-        const painting4 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/0NDc2Q52/aef3d173b0be81eec73bc4c3cde7304e.jpg');
-        painting4.position.set(-7.35, 2.5, 3.0);
-        painting4.rotation.y = Math.PI / 2;
-        scene.add(painting4);
-
-        const painting5 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/fRT3BWgS/Upscaled_Image.png');
-        painting5.position.set(7.35, 2.5, -3.0);
-        painting5.rotation.y = -Math.PI / 2;
-        scene.add(painting5);
-
-        const painting6 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/NGDBb8qY/Upscaled_(1).png');
-        painting6.position.set(7.35, 2.5, 3.0);
-        painting6.rotation.y = -Math.PI / 2;
-        scene.add(painting6);
-
-        const painting7 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/Y0Dc73Mg/Upscaled-Artwork.png');
-        painting7.position.set(-3.5, 2.5, 7.35);
-        painting7.rotation.y = Math.PI;
-        scene.add(painting7);
-
-        const painting8 = createPaintingWithTexture(2.8, 4.0, 'https://i.postimg.cc/jjYNfqrX/Снимок_экрана_2026_01_29_в_1_13_08_AM.png');
-        painting8.position.set(3.5, 2.5, 7.35);
-        painting8.rotation.y = Math.PI;
-        scene.add(painting8);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/zG3Q58RN/b9f9ad03_e6f5_4ebc_9be3_598cc183db09.jpg', -3.5, 2.5, -7.35);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/zX2dx622/Mark_Rothko_Den_Haag_Gemeentemuseum_Holland_Blog_Ausstellung_Grachten_und_Giebel_Tate_Modern2.jpg', 3.5, 2.5, -7.35);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/g2wgQsfb/422461_2x.webp', -7.35, 2.5, -3.0, Math.PI / 2);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/0NDc2Q52/aef3d173b0be81eec73bc4c3cde7304e.jpg', -7.35, 2.5, 3.0, Math.PI / 2);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/fRT3BWgS/Upscaled_Image.png', 7.35, 2.5, -3.0, -Math.PI / 2);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/NGDBb8qY/Upscaled_(1).png', 7.35, 2.5, 3.0, -Math.PI / 2);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/Y0Dc73Mg/Upscaled-Artwork.png', -3.5, 2.5, 7.35, Math.PI);
+        createPaintingWithLight(2.8, 4.0, 'https://i.postimg.cc/jjYNfqrX/Снимок_экрана_2026_01_29_в_1_13_08_AM.png', 3.5, 2.5, 7.35, Math.PI);
 
         const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x554433, roughness: 0.8 });
         const pedestalGeo = new THREE.BoxGeometry(0.8, 0.4, 0.8);
